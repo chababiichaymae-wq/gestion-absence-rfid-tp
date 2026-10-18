@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apogée Login</title>
+<style>
+    /* Reset de base */
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Helvetica', sans-serif;
+    }
+
+    body {
+        background: linear-gradient(135deg, #0f172a, #1f2937);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        color: white;
+    }
+
+    /* Card principale */
+    .card {
+        background-color: #1f2937;
+        padding: 40px 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        text-align: center;
+        width: 400px;
+    }
+
+    .card h1 {
+        font-size: 26px;
+        margin-bottom: 10px;
+    }
+
+    .card p {
+        font-size: 14px;
+        margin-bottom: 25px;
+        color: #d1d5db;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 15px;
+        font-size: 20px;
+        border-radius: 12px;
+        border: none;
+        text-align: center;
+        margin-bottom: 25px;
+        background-color: #111827;
+        color: white;
+    }
+
+    input[type="text"]::placeholder {
+        color: #9ca3af;
+    }
+
+    .btn-group {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    button {
+        flex: 1;
+        padding: 15px;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-reset {
+        background-color: #6b7280;
+        color: white;
+    }
+
+    .btn-reset:hover {
+        background-color: #4b5563;
+    }
+
+    .btn-check {
+        background-color: #10b981;
+        color: white;
+    }
+
+    .btn-check:hover {
+        background-color: #059669;
+    }
+
+    .result {
+        margin-top: 20px;
+        font-size: 18px;
+        font-weight: bold;
+        min-height: 24px;
+    }
+
+    .result.success {
+        color: #00ff7f;
+    }
+
+    .result.error {
+        color: #ff4500;
+    }
+
+    .result.warning {
+        color: #ffa500;
+    }
+</style>
+</head>
+<body>
+<div class="card">
+    <h1>Vérification Apogée</h1>
+    <p>Entrez votre numéro Apogée à 7 chiffres</p>
+    <input type="text" id="apogee" placeholder="0000000">
+    <div class="btn-group">
+        <button class="btn-reset" onclick="resetInput()">Reset</button>
+        <button class="btn-check" onclick="verifier()">Vérifier</button>
+    </div>
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+function checkApogeeFormat(num) {
+    return /^\d{7}$/.test(num);
+}
+
+function verifier() {
+    const input = document.getElementById('apogee').value.trim();
+    const resultDiv = document.getElementById('result');
+
+    if (!checkApogeeFormat(input)) {
+        resultDiv.textContent = "Format invalide — 7 chiffres requis";
+        resultDiv.className = "result warning";
+        return;
+    }
+
+    // Exemple simulation vérification dans la base
+    const etudiants = ["1234567", "7654321", "1111111"]; // Simulé, tu peux remplacer par fetch API
+    if (etudiants.includes(input)) {
+        resultDiv.textContent = "✅ Accès Autorisé";
+        resultDiv.className = "result success";
+    } else {
+        resultDiv.textContent = "❌ Étudiant Non Trouvable";
+        resultDiv.className = "result error";
+    }
+}
+
+function resetInput() {
+    document.getElementById('apogee').value = "";
+    document.getElementById('result').textContent = "";
+    document.getElementById('result').className = "result";
+}
+</script>
+</body>
+</html>

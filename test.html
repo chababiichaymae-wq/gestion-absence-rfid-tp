@@ -1,0 +1,64 @@
+CREATE TABLE etudiants (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    nom VARCHAR(50),
+    prenom VARCHAR(50),
+
+    cne VARCHAR(20) UNIQUE,
+    code_uid VARCHAR(50) UNIQUE,
+    num_dossier VARCHAR(30) UNIQUE,
+    apogee VARCHAR(20) UNIQUE,
+
+    photo VARCHAR(255),
+
+    filiere VARCHAR(50),
+    annee VARCHAR(20),
+    groupe VARCHAR(20)
+);
+
+
+
+CREATE TABLE IF NOT EXISTS emploi (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    filiere VARCHAR(50),
+    annee VARCHAR(20),
+    jour ENUM('Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'),
+    heure_debut TIME,
+    heure_fin TIME,
+    module VARCHAR(100),
+    prof VARCHAR(100),
+    salle VARCHAR(50),
+    type_seance VARCHAR(20) -- TP, TD, ou Cours
+);
+
+
+CREATE TABLE salles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(100) UNIQUE,
+    photo VARCHAR(255),
+    total_pcs INT DEFAULT 0,
+    pcs_utilises INT DEFAULT 0,
+    statut ENUM('ACTIVE','BLOQUEE') DEFAULT 'ACTIVE',
+    rfid_status BOOLEAN DEFAULT TRUE,
+    camera_status BOOLEAN DEFAULT TRUE
+);
+
+
+CREATE TABLE IF NOT EXISTS app_settings (    /* parametre */
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nom_app VARCHAR(100) DEFAULT 'Smart TP',
+    version VARCHAR(20) DEFAULT '1.0',
+    langue VARCHAR(20) DEFAULT 'fr',
+    theme_sombre TINYINT(1) DEFAULT 0,
+    auto_etudiants TINYINT(1) DEFAULT 0,
+    niveau_acces VARCHAR(50) DEFAULT 'Administrateur',
+    max_utilisateurs INT DEFAULT 50,
+    capacite_salles INT DEFAULT 30,
+    rfid_actif TINYINT(1) DEFAULT 1,
+    horaires_salles VARCHAR(255) DEFAULT '08:00-18:00',
+    notif_email TINYINT(1) DEFAULT 1,
+    notif_sms TINYINT(1) DEFAULT 0,
+    alertes_presences TINYINT(1) DEFAULT 1,
+    timeout_session INT DEFAULT 30,
+    politique_mdp VARCHAR(255) DEFAULT 'min8,1maj,1chiffre'
+);

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Présences & Absences</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI;background:#0f172a;color:white}
+.topbar{height:60px;background:#020617;display:flex;align-items:center;padding:0 25px;color:#38bdf8;font-weight:bold}
+.layout{display:flex}
+.sidebar{width:230px;background:#020617;min-height:100vh}
+.sidebar a{display:block;padding:14px 20px;color:#94a3b8;text-decoration:none}
+.sidebar a:hover,.sidebar .active{color:#38bdf8}
+.content{flex:1;padding:25px}
+h2{margin-bottom:15px}
+.filter{display:flex;gap:10px;margin-bottom:15px}
+.filter select, .filter input{padding:6px;border-radius:6px;border:none;background:#1e293b;color:white}
+.table-container{max-height:300px;overflow-y:auto;margin-bottom:15px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px;text-align:left;border-bottom:1px solid #1e293b}
+th{background:#020617}
+.button{background:#38bdf8;color:black;padding:6px 12px;border:none;border-radius:8px;cursor:pointer;margin-right:5px}
+.chart-container{display:flex;gap:20px;margin-top:20px}
+.chart-box{flex:1;background:#020617;padding:15px;border-radius:12px;height:250px}
+</style>
+</head>
+<body>
+<header class="topbar">Smart TP Access & Attendance</header>
+<div class="layout">
+<aside class="sidebar">
+  <a href="dashboard.html"><i class="fa fa-chart-line"></i> Dashboard</a>
+  <a href="etudiants.html"><i class="fa fa-users"></i> Étudiants</a>
+  <a href="presences.html" class="active"><i class="fa fa-clock"></i> Présences</a>
+  <a href="absences.html"><i class="fa fa-user-xmark"></i> Absences</a>
+  <a href="emplois.html"><i class="fa fa-calendar"></i> Emplois</a>
+  <a href="salles.html"><i class="fa fa-desktop"></i> Salles</a>
+</aside>
+<main class="content">
+<h2>🕒 Gestion des Présences & Absences</h2>
+
+<div class="filter">
+  <select id="filiere" onchange="updateAnnees()"><option value="">--Filière--</option></select>
+  <select id="annee" onchange="updateClasses()"><option value="">--Année--</option></select>
+  <select id="classe"><option value="">--Classe--</option></select>
+  <input type="date" id="date">
+  <button class="button" onclick="filterData()">Filtrer</button>
+</div>
+
+<div class="table-container">
+<table id="tablePresences">
+  <thead>
+    <tr><th>Nom</th><th>Prénom</th><th>Salle</th><th>Entrée</th><th>Sortie</th><th>Durée</th><th>Présent</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+</div>
+
+<button class="button" onclick="exportExcel()">Enregistrer Excel</button>
+<button class="button" onclick="exportPDF()">Enregistrer PDF</button>
+
+<div class="chart-container">
+  <div class="chart-box"><canvas id="chartJour"></canvas></div>
+  <div class="chart-box"><canvas id="chartSalle"></canvas></div>
+  <div class="chart-box"><canvas id="chartEtudiant"></canvas></div>
+</div>
+</main>
+</div>
+
+<script>
+let allStudents = [];
+let presences = [];
+
+async function loadFilters(){
+  let res = await fetch('/get_etudiants');
+  allStudents = await res.json();
+  
+  const filieres = [...new Set(allStudents.map(e=>e.filiere))];
+  document.getElementById('filiere').innerHTML = '<option value="">--Filière--</option>' + filieres.map(f=>`<option>${f}</option>`).join('');
+  
+  updateAnnees();
+  updateClasses();
+}
+loadFilters();
+
+function updateAnnees(){
+  const filiere = document.getElementById('filiere').value;
+  let filtered = allStudents;
+  if(filiere) filtered = allStudents.filter(e=>e.filiere===filiere);
+  const annees = [...new Set(filtered.map(e=>e.annee))];
+  document.getElementById('annee').innerHTML = '<option value="">--Année--</option>' + annees.map(a=>`<option>${a}</option>`).join('');
+  updateClasses();
+}
+
+function updateClasses(){
+  const filiere = document.getElementById('filiere').value;
+  const annee = document.getElementById('annee').value;
+  let filtered = allStudents;
+  if(filiere) filtered = filtered.filter(e=>e.filiere===filiere);
+  if(annee) filtered = filtered.filter(e=>e.annee===annee);
+  const classes = [...new Set(filtered.map(e=>e.classe))];
+  document.getElementById('classe').innerHTML = '<option value="">--Classe--</option>' + classes.map(c=>`<option>${c}</option>`).join('');
+}
+
+function calculateDuration(e,s){
+  if(!e||!s) return "";
+  let [he,me]=e.split(":"),[hs,ms]=s.split(":");
+  return ((parseInt(hs)*60+parseInt(ms))-(parseInt(he)*60+parseInt(me)))+" min";
+}
+
+async function filterData(){
+  const filiere=document.getElementById('filiere').value;
+  const annee=document.getElementById('annee').value;
+  const classe=document.getElementById('classe').value;
+  const date=document.getElementById('date').value;
+
+  let etRes = await fetch(`/get_etudiants?filiere=${filiere}&annee=${annee}&classe=${classe}`);
+  let etus = await etRes.json();
+  let et_ids = etus.map(e=>e.id);
+  let presPromises = await Promise.all(et_ids.map(id=>fetch(`/get_presences?etudiant_id=${id}&date=${date}`).then(r=>r.json())));
+  presences = presPromises.flat();
+  renderTable(presences);
+  renderCharts(presences);
+}
+
+function renderTable(data){
+  const tbody=document.querySelector("#tablePresences tbody");
+  tbody.innerHTML="";
+  data.forEach(p=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${p.nom}</td><td>${p.prenom}</td><td>${p.salle}</td><td>${p.entree}</td><td>${p.sortie}</td><td>${calculateDuration(p.entree,p.sortie)}</td><td>${p.entree&&p.sortie?"Présent":"Absent"}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderCharts(data){
+  const jours={}; data.forEach(p=>jours[p.date]=(jours[p.date]||0)+1);
+  const ctx1=document.getElementById("chartJour").getContext("2d");
+  if(window.chart1) window.chart1.destroy();
+  window.chart1=new Chart(ctx1,{type:"bar",data:{labels:Object.keys(jours),datasets:[{label:"Présences",data:Object.values(jours),backgroundColor:"#2563eb"}]}});
+
+  const salles={}; data.forEach(p=>salles[p.salle]=(salles[p.salle]||0)+1);
+  const ctx2=document.getElementById("chartSalle").getContext("2d");
+  if(window.chart2) window.chart2.destroy();
+  window.chart2=new Chart(ctx2,{type:"pie",data:{labels:Object.keys(salles),datasets:[{data:Object.values(salles),backgroundColor:["#2563eb","#1e40af","#1e3a8a","#1e3a70"]}]}});
+
+  const etus={}; data.forEach(p=>etus[p.nom]=(etus[p.nom]||0)+1);
+  const ctx3=document.getElementById("chartEtudiant").getContext("2d");
+  if(window.chart3) window.chart3.destroy();
+  window.chart3=new Chart(ctx3,{type:"doughnut",data:{labels:Object.keys(etus),datasets:[{data:Object.values(etus),backgroundColor:["#1e3a8a","#1e40af","#2563eb"]}]}})
+}
+
+function exportExcel(){ 
+  const wb=XLSX.utils.table_to_book(document.getElementById('tablePresences'),{sheet:"Présences"});
+  XLSX.writeFile(wb,"presences.xlsx"); 
+}
+
+function exportPDF(){ 
+  const { jsPDF }=window.jspdf; 
+  const doc=new jsPDF(); 
+  let rows=presences.map(p=>[p.nom,p.prenom,p.salle,p.entree,p.sortie,calculateDuration(p.entree,p.sortie),p.entree&&p.sortie?"Présent":"Absent"]);
+  doc.autoTable({head:[["Nom","Prénom","Salle","Entrée","Sortie","Durée","Présent"]],body:rows});
+  doc.save("presences.pdf"); 
+}
+</script>
+</body>
+</html>

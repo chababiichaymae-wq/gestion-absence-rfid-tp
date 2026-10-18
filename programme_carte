@@ -1,0 +1,37 @@
+from smartcard.System import readers
+from smartcard.util import toHexString
+
+def detect_card():
+    r = readers()
+    if not r:
+        print("❌ لا يوجد قارئ متصل")
+        return
+
+    reader = r[0]
+    print(f"📡 القارئ: {reader}")
+
+    connection = reader.createConnection()
+    try:
+        connection.connect()
+        atr = toHexString(connection.getATR())
+        print(f"🆔 ATR (تعريف الكارت): {atr}")
+
+        # محاولة قراءة UID (إذا الكارت يدعم APDU هذا)
+        try:
+            COMMAND = [0xFF, 0xCA, 0x00, 0x00, 0x00]  # Get UID
+            data, sw1, sw2 = connection.transmit(COMMAND)
+            if sw1 == 0x90:
+                uid = toHexString(data).replace(" ", "")
+                print(f"📊 UID: {uid}")
+                print("✅ الكارت موجود ويمكن قراءته")
+            else:
+                print(f"⚠️ الكارت موجود لكن ما قدرناش نقراوه (SW: {hex(sw1)}, {hex(sw2)})")
+        except Exception as e:
+            print(f"⚠️ لا يمكن قراءة UID: {e}")
+
+    except Exception as e:
+        print(f"❌ خطأ أثناء الاتصال بالكارت: {e}")
+        print("💡 ممكن القارئ ما يدعمش هاد الكارت NFC")
+
+if __name__ == "__main__":
+    detect_card()

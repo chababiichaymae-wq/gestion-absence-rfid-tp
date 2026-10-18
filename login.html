@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Secure Login | Smart TP</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-family:Segoe UI,sans-serif;
+  background:
+    radial-gradient(circle at top,#1e293b,#020617);
+  color:#e5e7eb;
+  overflow:hidden
+}
+
+/* BACK CIRCLES */
+.bg-circle{
+  position:absolute;
+  width:320px;height:320px;
+  background:#38bdf8;
+  filter:blur(120px);
+  opacity:.35
+}
+.c1{top:-80px;left:-80px}
+.c2{bottom:-100px;right:-100px}
+
+/* LOGIN BOX */
+.login-box{
+  width:400px;
+  padding:40px;
+  border-radius:22px;
+  background:rgba(2,6,23,.75);
+  backdrop-filter:blur(14px);
+  box-shadow:0 25px 60px rgba(0,0,0,.7);
+  text-align:center;
+  position:relative;
+  z-index:1
+}
+
+/* LOGO */
+.logo{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  margin-bottom:30px
+}
+.logo img{
+  width:78px;
+  height:78px;
+  border-radius:18px;
+  box-shadow:0 0 0 4px #020617,0 0 25px #38bdf8
+}
+.logo h2{
+  margin:0;
+  color:#38bdf8;
+  letter-spacing:1px
+}
+.logo span{
+  font-size:13px;
+  color:#94a3b8
+}
+
+/* INPUTS */
+.input-group{
+  position:relative;
+  margin-bottom:22px
+}
+.input-group i{
+  position:absolute;
+  top:50%;
+  left:14px;
+  transform:translateY(-50%);
+  color:#38bdf8
+}
+.input-group input{
+  width:100%;
+  padding:14px 14px 14px 44px;
+  border:none;
+  border-radius:14px;
+  background:#020617;
+  color:white;
+  font-size:14px;
+  outline:none;
+  transition:.3s
+}
+.input-group input:focus{
+  box-shadow:0 0 0 2px #38bdf8
+}
+
+/* BUTTON */
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:16px;
+  background:linear-gradient(135deg,#38bdf8,#0ea5e9);
+  color:#020617;
+  font-weight:bold;
+  font-size:15px;
+  cursor:pointer;
+  margin-top:8px;
+  transition:.3s
+}
+button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 30px rgba(56,189,248,.45)
+}
+
+/* FOOTER */
+.footer{
+  margin-top:22px;
+  font-size:12px;
+  color:#94a3b8
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg-circle c1"></div>
+<div class="bg-circle c2"></div>
+
+<div class="login-box">
+
+  <div class="logo">
+    <img src="c">
+    <h2>SMART TP</h2>
+    <span>Secure Administration Panel</span>
+  </div>
+
+  <form method="POST" action="interface.html">
+    <div class="input-group">
+      <i class="fa fa-user-shield"></i>
+      <input type="text" name="username" placeholder="Nom d’utilisateur" required>
+    </div>
+
+    <div class="input-group">
+      <i class="fa fa-lock"></i>
+      <input type="password" name="password" placeholder="Mot de passe" required>
+    </div>
+
+    <button type="submit">
+      <i class="fa fa-arrow-right-to-bracket"></i> Accéder au Dashboard
+    </button>
+  </form>
+
+  <div class="footer">
+    © 2026 Smart TP • Global Monitoring System
+  </div>
+
+</div>
+
+</body>
+</html>
